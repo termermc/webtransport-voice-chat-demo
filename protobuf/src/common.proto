@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package system;
+
+message RoomUser {
+  // The user's session ID.
+  int64 session_id = 1;
+
+  // The user's username.
+  string username = 2;
+}

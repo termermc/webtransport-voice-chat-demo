@@ -13,6 +13,8 @@ use wtransport::tls::Sha256Digest;
 use wtransport::tls::Sha256DigestFmt;
 use wtransport::Identity;
 
+use protobuf::system;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ServerConfig {
     cert_digest_base64: String,
@@ -106,6 +108,8 @@ mod webtransport {
 
                 let connection = session_request.accept().await?;
 
+                let session_id: u64 = rand::random();
+
                 info!("Waiting for data from client...");
 
                 loop {
@@ -123,7 +127,8 @@ mod webtransport {
 
                             info!("Received (bi) '{str_data}' from client");
 
-                            stream.0.write_all(b"ACK").await?;
+                            let ack_str = String::from("ACK".to_owned() + &str_data);
+                            stream.0.write_all(ack_str.as_bytes()).await?;
                         }
                         stream = connection.accept_uni() => {
                             let mut stream = stream?;
@@ -139,15 +144,17 @@ mod webtransport {
                             info!("Received (uni) '{str_data}' from client");
 
                             let mut stream = connection.open_uni().await?.await?;
-                            stream.write_all(b"ACK").await?;
+                            let ack_str = String::from("ACK".to_owned() + &str_data);
+                            stream.write_all(ack_str.as_bytes()).await?;
                         }
                         dgram = connection.receive_datagram() => {
                             let dgram = dgram?;
                             let str_data = std::str::from_utf8(&dgram)?;
 
-                            info!("Received (dgram) '{str_data}' from client");
+                            info!("Received (dgram) '{str_data}' from client (session_id: {session_id})");
 
-                            connection.send_datagram(b"ACK")?;
+                            let ack_str = String::from("ACK".to_owned() + &str_data);
+                            connection.send_datagram(ack_str.as_bytes())?;
                         }
                     }
                 }

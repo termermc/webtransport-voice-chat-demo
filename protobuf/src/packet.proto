@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+import "common.proto";
+
+package system;
+
+enum PacketType {
+    AUTH_REQUEST = 0;
+    AUTH_RESPONSE_SUCCESS = 1;
+    AUTH_RESPONSE_ERROR = 2;
+    JOIN_ROOM_REQUEST = 3;
+    JOIN_ROOM_RESPONSE = 4;
+    USER_JOINED = 5;
+    USER_LEFT = 6;
+}
+
+message AuthRequest {
+    // The user's username.
+    string username = 1;
+
+    // Unused for now.
+    string token = 2;
+}
+
+message AuthResponseSuccess {
+    // The session ID.
+    int64 session_id = 1;
+}
+
+message AuthResponseError {
+    enum Type {
+        // The provided credentials were invalid.
+        INVALID_CREDENTIALS = 0;
+
+        // The specified user is already logged in.
+        ALREADY_LOGGED_IN = 1;
+    }
+
+    // The error type.
+    Type type = 1;
+}
+
+message JoinRoomRequest {
+    string room_key = 1;
+}
+
+message JoinRoomResponse {
+    repeated RoomUser users = 1;
+}
